@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-pillow
-transformers
-torch
-opencv-python-headless
-easyocr

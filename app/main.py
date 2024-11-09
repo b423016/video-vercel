@@ -24,6 +24,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+import uvicorn
+
+if __name__ == "__main__":
+    # Adjust 'main:app' to the path and app name where your FastAPI instance is defined.
+    uvicorn.run(r"app.main.py", port=8000, reload=True)
+
+
 
 def save_image(image_bytes: bytes, filename: str) -> str:
     output_dir = Path("processed_images")
@@ -56,3 +63,7 @@ async def process_video(file: UploadFile = File(...)):
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+if __name__ == "__main__":
+    uvicorn.run(app,port=8000, reload=True)

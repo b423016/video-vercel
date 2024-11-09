@@ -5,3 +5,4 @@ transformers
 torch
 opencv-python-headless
 easyocr
+pathlib

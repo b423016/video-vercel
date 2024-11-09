@@ -66,4 +66,4 @@ async def process_video(file: UploadFile = File(...)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app,port=8000, reload=True)
+    uvicorn.run(app,port=5000, reload=True)

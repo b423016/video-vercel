@@ -33,6 +33,31 @@ def load_style_model():
         "openai/clip-vit-base-patch32")
 
 
+def add_emoji_to_text_and_size(text, font_size=1):
+    # Simple keyword-to-emoji mapping for demonstration
+    emoji_dict = {
+        "Default": "😮",
+        "happy": "😊",
+        "sad": "😢",
+        "love": "❤️",
+        "exciting": "🎉",
+        "surprised": "😮",
+        "world": "🌍",
+        "AI": "🤖",
+        "fire": "🔥"
+    }
+
+    # Append emojis to the text based on keywords
+    for word, emoji in emoji_dict.items():
+        if word in text:
+            text += f" {emoji}"
+
+    # Adjust the text size display (console formatting)
+    formatted_text = f"\033[{font_size}m{text}\033[0m"  # ANSI escape sequence for font size
+
+    return formatted_text
+
+
 def load_text_generation_model():
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
     model = AutoModelForCausalLM.from_pretrained("gpt2")
@@ -207,7 +232,7 @@ def detect_empty_region(image: Image.Image) -> tuple:
 
     # Create regions grid
     height, width = gray.shape
-    grid_size = 32
+    grid_size = 64
     best_region = (width // 2, height // 4)  # Default position
 
     # Find dark regions suitable for text

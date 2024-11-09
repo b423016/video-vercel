@@ -57,5 +57,5 @@ async def process_video(file: UploadFile = File(...)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Use PORT from environment variable or default to 8000
+    port = int(os.environ.get("PORT", 10000))  # Default to 10000 for Render
     uvicorn.run(app, host="0.0.0.0", port=port, reload=True)

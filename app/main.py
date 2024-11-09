@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from utils import (
+from app.utils import (
     extract_frame_from_video, preprocess_image,
     detect_scene, detect_emotions, detect_style,
     generate_branding_text, add_text_overlay

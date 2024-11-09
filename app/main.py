@@ -2,15 +2,17 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-import tempfile
 import zipfile
 import os
 import uvicorn
 import logging
 from datetime import datetime
-
+from pydantic import BaseModel
+from typing import Optional
+import json
 # Import all utilities
 from app.utils import generate_top_thumbnails
+from app.utils import add_emoji_to_text_and_size
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +38,12 @@ OUTPUT_DIR = Path("processed_images")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
+# Pydantic model for the JSON input
+class ThumbnailRequest(BaseModel):
+    num_thumbnails: int
+
+
+# Helper function to save thumbnail
 def save_thumbnail(image_bytes: bytes, filename: str) -> Path:
     """Save thumbnail to file system."""
     file_path = OUTPUT_DIR / f"{filename}.png"
@@ -44,6 +52,7 @@ def save_thumbnail(image_bytes: bytes, filename: str) -> Path:
     return file_path
 
 
+# Helper function to create a zip file
 def create_zip(paths: list[Path], filename: str = "thumbnails.zip") -> Path:
     """Create ZIP archive of thumbnails."""
     zip_path = OUTPUT_DIR / filename
@@ -53,6 +62,7 @@ def create_zip(paths: list[Path], filename: str = "thumbnails.zip") -> Path:
     return zip_path
 
 
+# Cleanup old files
 def cleanup_old_files():
     """Clean up files older than 1 hour."""
     current_time = datetime.now().timestamp()
@@ -61,25 +71,33 @@ def cleanup_old_files():
             file_path.unlink()
 
 
-@app.post("/process_video")
-async def process_video(
-        file: UploadFile = File(...),
-        num_thumbnails: int = 5
+# Endpoint to process video and JSON data
+@app.post("/process_video_and_json")
+async def process_video_and_json(
+        file: UploadFile = File(...),  # Video file
+        json_data: UploadFile = File(...),  # JSON file containing num_thumbnails
 ):
     """
     Process uploaded video and generate AI-powered thumbnails.
 
     Parameters:
     - file: Video file (MP4 format recommended)
-    - num_thumbnails: Number of thumbnails to generate (default: 5)
+    - json_data: JSON file containing num_thumbnails
 
     Returns:
     - ZIP file containing generated thumbnails
     """
     try:
-        logger.info(f"Processing video: {file.filename}")
+        # Read JSON data
+        json_bytes = await json_data.read()
+        json_content = json.loads(json_bytes.decode("utf-8"))
+        num_thumbnails = json_content.get("num_thumbnails", 5)
 
-        # Validate file type
+        # Log the text with emoji and font size
+        logger.info(add_emoji_to_text_and_size(f"Processing video: {file.filename}", font_size=100))
+        logger.info(add_emoji_to_text_and_size("Generating thumbnails...", font_size=100))
+
+        # Validate video file type
         if not file.filename.lower().endswith(('.mp4', '.avi', '.mov')):
             raise HTTPException(
                 status_code=400,
@@ -98,12 +116,12 @@ async def process_video(
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         original_filename = Path(file.filename).stem
 
-        for i, thumbnail in enumerate(thumbnails):
+        for i, thumbnail in enumerate(thumbnails[:num_thumbnails]):  # Only generate num_thumbnails
             filename = f"{original_filename}_{timestamp}_thumb_{i + 1}"
             path = save_thumbnail(thumbnail, filename)
             thumbnail_paths.append(path)
 
-        # Create ZIP file
+        # Create ZIP file with thumbnails
         zip_filename = f"{original_filename}_{timestamp}_thumbnails.zip"
         zip_path = create_zip(thumbnail_paths, zip_filename)
 

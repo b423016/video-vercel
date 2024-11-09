@@ -8,10 +8,10 @@ from app.utils import (
 )
 from pathlib import Path
 from datetime import datetime
-
 import os
 import cv2
 import numpy as np
+import uvicorn
 
 app = FastAPI()
 
@@ -23,14 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-import uvicorn
-
-if __name__ == "__main__":
-    # Adjust 'main:app' to the path and app name where your FastAPI instance is defined.
-    uvicorn.run(r"app.main.py", port=8000, reload=True)
-
-
 
 def save_image(image_bytes: bytes, filename: str) -> str:
     output_dir = Path("processed_images")
@@ -64,6 +56,6 @@ async def process_video(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-
 if __name__ == "__main__":
-    uvicorn.run(app,port=5000, reload=True)
+    port = int(os.environ.get("PORT", 8000))  # Use PORT from environment variable or default to 8000
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=True)

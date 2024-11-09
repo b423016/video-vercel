@@ -24,13 +24,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-import uvicorn
-
-if __name__ == "__main__":
-    # Adjust 'main:app' to the path and app name where your FastAPI instance is defined.
-    uvicorn.run(r"C:\Users\ayush\Documents\ML\ayush_projects\ai_thumbnail\thumbnail_generator\app\main.py", host="0.0.0.0", port=8000, reload=True)
-
-
 
 def save_image(image_bytes: bytes, filename: str) -> str:
     output_dir = Path("processed_images")
